@@ -2,40 +2,9 @@
 # frozen_string_literal: true
 
 require "crunch"
-require "crunch/cli"
 
 begin
-  options = {}
-  OptionParser.new do |opts|
-    opts.banner = "Usage: crunch [directory] [options]"
-
-    opts.on("-o", "--output FILENAME", "Output filename") do |filename|
-      options[:output_file] = filename
-    end
-
-    opts.on("-v", "--verbose", "Verbose output") do
-      options[:verbose] = true
-    end
-
-    opts.on("--include PATTERN", "Include file pattern") do |pattern|
-      options[:include] ||= []
-      options[:include] << pattern
-    end
-
-    opts.on("--exclude PATTERN", "Exclude file pattern") do |pattern|
-      options[:exclude] ||= []
-      options[:exclude] << pattern
-    end
-
-    opts.on("-h", "--help", "Show this help message") do
-      puts opts
-      exit
-    end
-  end.parse!
-
-  options[:source_path] = ARGV[0] if ARGV[0]
-
-  Crunch::CLI.new(options).run
+  Crunch::CLI.start
 rescue StandardError => e
   puts "Error: #{e.message}"
   exit 1

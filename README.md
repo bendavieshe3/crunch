@@ -20,7 +20,7 @@ Crunch is a simple CLI tool to concatenate text based files into a single file f
 * In addition to the output file, it will also print the number of files included and the total size of the output file to the console.
 * If the verbose flag is provided, it will print the file paths of the files that were included and include a summary of the total file size contributed by each folder and file type.
 
-### Use cases: 
+### Use cases:
 
 * run against a obsidian vault (or folder within a vault) to create a single file that can be used as context for an LLM (collecting markdown files, images, and potentially other file types)
 * run against a development project to create a single file with relevant source code without the sensitive information stored in dotfiles etc.

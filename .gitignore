@@ -26,6 +26,7 @@ doc/
 spec/reports/
 spec/examples.txt
 spec/tmp/
+.rspec_status
 
 # Crunch-specific output
 *.txt

@@ -1,2 +1,31 @@
-*.txt
+# Generated gem files
+*.gem
+*.rbc
+pkg/
+
+# Build artifacts & dependencies
+Gemfile.lock
+coverage/
+tmp/
+.bundle/
+
+# RDoc & YARD documentation
+rdoc/
+doc/
+.yardoc/
+
+# Environment & editor files
+.env
 .DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Test files
+spec/reports/
+spec/examples.txt
+spec/tmp/
+
+# Crunch-specific output
+*.txt

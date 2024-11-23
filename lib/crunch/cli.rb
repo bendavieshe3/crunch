@@ -1,3 +1,4 @@
+# FILE: lib/crunch/cli.rb
 #!/usr/bin/env ruby
 require 'optparse'
 require 'pathname'
@@ -8,19 +9,32 @@ module Crunch
     DEFAULT_INCLUDE_EXTENSIONS = %w[
       .py .js .ts .go .rs .swift .java .kt .cpp .c .h .hpp 
       .hs .scala .vb .php .rb .rs .swift .kt .sh .lua .pl .sql .md
-      .gemspec
+      .gemspec .yml .yaml
     ].freeze
 
+    # Configuration files that should be included
     DEFAULT_KNOWN_FILES = %w[
       Rakefile Gemfile package.json Dockerfile Makefile
+      .gitignore .rubocop.yml .rspec .ruby-version .ruby-gemset
+      .eslintrc .prettierrc .babelrc .editorconfig
+      .gitlab-ci.yml .github/workflows/*.yml
     ].freeze
 
+    # Directories that should always be excluded
     EXCLUDED_DIRECTORIES = %w[
       .git .svn .hg .bzr node_modules vendor bundle
+      coverage tmp log .bundle
     ].freeze
 
+    # Files that should always be excluded (including sensitive dotfiles)
     EXCLUDED_FILES = %w[
-      .DS_Store Thumbs.db .env
+      .DS_Store Thumbs.db 
+      .env .env.* .env.development .env.test .env.production
+      .rspec_status 
+      .byebug_history
+      *.log
+      *.swp .*.swp
+      *~ 
     ].freeze
 
     def self.start(args = ARGV)
@@ -132,23 +146,54 @@ module Crunch
     end
 
     def should_include_file?(file)
-      return false if EXCLUDED_FILES.include?(file.basename.to_s)
+      basename = file.basename.to_s
+      relative_path = file.relative_path_from(@source_path).to_s
       
+      # Check explicit exclusions first
+      return false if file_matches_any?(relative_path, EXCLUDED_FILES)
+      
+      # Check user-provided patterns
       if @include_patterns
-        return @include_patterns.any? { |pattern| File.fnmatch(pattern, file.basename.to_s) }
+        return @include_patterns.any? { |pattern| File.fnmatch(pattern, relative_path) }
       end
 
       if @exclude_patterns
-        return false if @exclude_patterns.any? { |pattern| File.fnmatch(pattern, file.basename.to_s) }
+        return false if @exclude_patterns.any? { |pattern| File.fnmatch(pattern, relative_path) }
       end
 
+      # Check if it's a known configuration file
+      return true if DEFAULT_KNOWN_FILES.any? { |pattern| File.fnmatch(pattern, relative_path, File::FNM_PATHNAME) }
+
+      # Check file extension
       extension = file.extname.downcase
-      basename = file.basename.to_s
-      DEFAULT_INCLUDE_EXTENSIONS.include?(extension) || DEFAULT_KNOWN_FILES.include?(basename)
+      DEFAULT_INCLUDE_EXTENSIONS.include?(extension)
+    end
+
+    def file_matches_any?(path, patterns)
+      patterns.any? do |pattern|
+        if pattern.include?('*') || pattern.include?('/')
+          File.fnmatch(pattern, path, File::FNM_PATHNAME)
+        else
+          File.basename(path) == pattern
+        end
+      end
     end
 
     def excluded_directory?(path)
-      path.directory? && EXCLUDED_DIRECTORIES.include?(path.basename.to_s)
+      return false unless path.directory?
+      
+      relative_path = path.relative_path_from(@source_path).to_s
+      
+      EXCLUDED_DIRECTORIES.any? do |pattern|
+        if pattern.include?('/')
+          # Handle nested patterns
+          File.fnmatch(pattern, relative_path, File::FNM_PATHNAME)
+        else
+          # Handle top-level directory matches
+          parts = relative_path.split('/')
+          parts.any? { |part| part == pattern }
+        end
+      end
     end
 
     def update_stats(file, size)

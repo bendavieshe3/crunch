@@ -8,6 +8,7 @@ module Crunch
     DEFAULT_INCLUDE_EXTENSIONS = %w[
       .py .js .ts .go .rs .swift .java .kt .cpp .c .h .hpp 
       .hs .scala .vb .php .rb .rs .swift .kt .sh .lua .pl .sql .md
+      .gemspec
     ].freeze
 
     DEFAULT_KNOWN_FILES = %w[

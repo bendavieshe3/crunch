@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "crunch/version"
-require_relative "crunch/CLI"
-
 module Crunch
-  class Error < StandardError; end
-  # Your code goes here...
+    class Error < StandardError; end
 end
+
+require_relative "crunch/version"
+require_relative "crunch/cli"

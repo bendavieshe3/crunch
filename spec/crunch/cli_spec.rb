@@ -70,6 +70,32 @@ RSpec.describe Crunch::CLI do
       end
     end
 
+    context "with extensionless files" do
+      it "includes executable files in bin directory" do
+        FileUtils.mkdir_p("#{test_dir}/bin")
+        executable_path = "#{test_dir}/bin/mycommand"
+        File.write(executable_path, "#!/usr/bin/env ruby\nputs 'hello'")
+        FileUtils.chmod(0755, executable_path)
+        file = Pathname.new(executable_path)
+        expect(cli.send(:should_include_file?, file)).to be true
+      end
+  
+      it "includes files with shebangs in other locations" do
+        executable_path = "#{test_dir}/custom_script"
+        File.write(executable_path, "#!/bin/bash\necho 'hello'")
+        FileUtils.chmod(0755, executable_path)
+        file = Pathname.new(executable_path)
+        expect(cli.send(:should_include_file?, file)).to be true
+      end
+  
+      it "excludes non-executable files without extensions" do
+        file_path = "#{test_dir}/random_file"
+        File.write(file_path, "just some content")
+        file = Pathname.new(file_path)
+        expect(cli.send(:should_include_file?, file)).to be false
+      end
+    end
+
     context "with sensitive files" do
       it "excludes .env files" do
         [".env", ".env.development", ".env.test", ".env.production"].each do |env_file|

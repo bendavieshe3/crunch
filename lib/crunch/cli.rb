@@ -1,5 +1,5 @@
-# FILE: lib/crunch/cli.rb
 #!/usr/bin/env ruby
+# FILE: lib/crunch/cli.rb
 require 'optparse'
 require 'pathname'
 require 'fileutils'
@@ -18,6 +18,11 @@ module Crunch
       .gitignore .rubocop.yml .rspec .ruby-version .ruby-gemset
       .eslintrc .prettierrc .babelrc .editorconfig
       .gitlab-ci.yml .github/workflows/*.yml
+    ].freeze
+
+    # Directories where extensionless files should be checked for inclusion
+    EXECUTABLE_DIRECTORIES = %w[
+      bin/ exe/ scripts/ tools/
     ].freeze
 
     # Directories that should always be excluded
@@ -166,7 +171,14 @@ module Crunch
 
       # Check file extension
       extension = file.extname.downcase
-      DEFAULT_INCLUDE_EXTENSIONS.include?(extension)
+      return true if DEFAULT_INCLUDE_EXTENSIONS.include?(extension)
+
+      # If no extension, check if it's in an executable directory and is executable
+      if extension.empty?
+        return should_include_extensionless_file?(file, relative_path)
+      end
+
+      false
     end
 
     def file_matches_any?(path, patterns)
@@ -194,6 +206,19 @@ module Crunch
           parts.any? { |part| part == pattern }
         end
       end
+    end
+
+    def should_include_extensionless_file?(file, relative_path)
+      # Check if file is in a known executable directory
+      return true if EXECUTABLE_DIRECTORIES.any? { |dir| relative_path.start_with?(dir) }
+
+      # If not in a known directory, check if it's executable and contains a shebang
+      if file.executable? && File.exist?(file)
+        first_line = File.open(file, &:readline).strip rescue nil
+        return true if first_line&.start_with?('#!')
+      end
+
+      false
     end
 
     def update_stats(file, size)

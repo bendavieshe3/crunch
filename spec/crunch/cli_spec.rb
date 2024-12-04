@@ -172,6 +172,16 @@ RSpec.describe Crunch::CLI do
       end
     end
 
+    it "excludes Python virtual environment and cache directories" do
+      ["venv", ".venv", "env", ".env", "__pycache__", ".pytest_cache", ".tox"].each do |py_dir|
+        dir = create_and_test_directory(py_dir)
+        expect(cli.send(:excluded_directory?, dir)).to(
+          be(true),
+          "Expected #{py_dir} to be excluded"
+        )
+      end
+    end
+
     it "includes regular project directories" do
       ["src", "lib", "app", "config"].each do |project_dir|
         dir = create_and_test_directory(project_dir)

@@ -28,7 +28,8 @@ module Crunch
     # Directories that should always be excluded
     EXCLUDED_DIRECTORIES = %w[
       .git .svn .hg .bzr node_modules vendor bundle
-      coverage tmp log .bundle
+      coverage tmp log .bundle venv .venv env .env
+      __pycache__ .pytest_cache .tox
     ].freeze
 
     # Files that should always be excluded (including sensitive dotfiles)
